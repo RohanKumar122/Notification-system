@@ -1,32 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import {useFirebase} from '../context/firebase';
 import { useNavigate } from 'react-router-dom';
 
-const backendapi = process.env.REACT_APP_BACKEND_API;
-
 const RegisterForm = () => {
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false); 
+  const firebase =useFirebase();
+  console.log(firebase);
   const navigate = useNavigate();
 
-  const handleRegister = async () => {
+  useEffect(() => {
+      if (firebase.isLoggedIn) {
+        navigate('/');
+      }
+    }, [firebase, navigate]);
+  
+
+  const handleRegister = async (e) => {
     setLoading(true); 
     try {
-      const response = await fetch(`${backendapi}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }), // Send username and password as JSON
-      });
-
-      if (response.ok) {
-        alert('Registration successful! Please log in.');
-        navigate('/login'); // Redirect to login page
-      } else {
-        const errorData = await response.json();
-        alert(errorData.detail || 'Registration failed.'); // Show error message
-      }
+      e.preventDefault();
+      console.log('Sigining up...');
+      const result = await firebase.signupUserWithEmailAndPassword(username, password);
+      console.log("successful",result);
+ 
     } catch (error) {
       alert('Error connecting to the server.');
     }
@@ -35,7 +34,7 @@ const RegisterForm = () => {
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6 bg-white shadow-lg rounded-lg">
-      <h2 className="text-2xl font-semibold text-center mb-4">Register</h2>
+      <h2 className="text-2xl font-semibold text-center mb-4">register</h2>
       <input
         type="text"
         placeholder="Username"
@@ -55,7 +54,7 @@ const RegisterForm = () => {
         onClick={handleRegister}
         disabled={loading} 
       >
-        {loading ? 'Registering...' : 'Register'}
+        {loading ? 'Registering...' : 'Create Account'}
       </button>
     </div>
   );

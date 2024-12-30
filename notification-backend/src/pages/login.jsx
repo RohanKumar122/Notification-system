@@ -1,35 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useFirebase } from '../context/firebase';
 import { useNavigate } from 'react-router-dom';
 
-const backendapi =process.env.REACT_APP_BACKEND_API
+// const backendapi =process.env.REACT_APP_BACKEND_API
 const LoginForm = ({ setToken }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false); 
+  const firebase =useFirebase();
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    setLoading(true); 
-    const response = await fetch(`${backendapi}/token`, {
-      method: 'POST',
-      body: new URLSearchParams({
-        username,
-        password,
-      }),
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setToken(data.access_token); 
-      localStorage.setItem('token', data.access_token); 
-      navigate('/'); 
-    } else {
-      alert('Invalid credentials');
+  useEffect(() => {
+    if (firebase.isLoggedIn) {
+      navigate('/');
     }
-    setLoading(false); 
+  }, [firebase, navigate]);
+
+  const handleLogin = async (e) => {
+    try{
+      setLoading(true); 
+
+    e.preventDefault();
+      console.log('Sigining in...');
+      const result = await firebase.loginWithEmailAndPassword(username, password);
+      console.log("successful",result);
+    }
+    catch(error){
+      alert('Error connecting to the server.');
+    }
+    setLoading(false);  
+
   };
 
   return (
@@ -56,7 +56,17 @@ const LoginForm = ({ setToken }) => {
       >
         {loading ? 'Logging in...' : 'Login'}
       </button>
+
+      <h1 className='text-center my-4'>OR</h1>
+      <div>
+        <button onClick={firebase.signinWithGoogle} className="w-full py-2 bg-red-500 text-white rounded hover:bg-red-600">
+          Signin with Google
+        </button>
+      </div>
+
     </div>
+
+    
   );
 };
 
