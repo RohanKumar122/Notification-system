@@ -7,8 +7,9 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   onAuthStateChanged,
+  signOut,
 } from "firebase/auth";
-import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc,getDocs } from "firebase/firestore";
 // import { getStorage, ref, uploadBytes } from "firebase/storage";
 
 const FirebaseContext = createContext(null);
@@ -43,6 +44,15 @@ export const FirebaseProvider = (props) => {
     signInWithEmailAndPassword(firebaseAuth, email, password);
   const signinWithGoogle = () => signInWithPopup(firebaseAuth, googleProvider);
 
+  const logout = async () => {
+    try {
+      await signOut(firebaseAuth);
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   const handleCreateNewListing = async (name, isbn, price) => {
     // const imageRef = ref(storage, `uploads/images/${Date.now()}-${cover.name}`);
     // const uploadResult = await uploadBytes(imageRef, cover);
@@ -56,6 +66,13 @@ export const FirebaseProvider = (props) => {
     }
     // await addDoc(collection(firestore, "books"), { name, isbn, price, imageURL: uploadResult.ref.fullPath,userId:user.uid,userEmail:user.email,displayName:user.displayName,photoURL:user.photoURL });
   };
+
+
+  const listAllBooks =()=>{
+    const querySnapshot = getDocs(collection(firestore, "books"));
+    return querySnapshot
+  };
+
   const isLoggedIn = user ? true : false;
 
   return (
@@ -68,6 +85,8 @@ export const FirebaseProvider = (props) => {
         signinWithGoogle,
         handleCreateNewListing,
         isLoggedIn,
+        logout,
+        listAllBooks,
       }}
     >
       {props.children}
